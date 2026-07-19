@@ -84,7 +84,6 @@ public class Task {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
-
         // Auto-set completedAt when status changes to COMPLETED
         if (this.status == TaskStatus.COMPLETED &&
                 this.completedAt == null) {
