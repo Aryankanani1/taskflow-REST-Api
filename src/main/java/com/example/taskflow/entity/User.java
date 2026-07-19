@@ -25,11 +25,10 @@ public class User {
 
 @Column(
 nullable = false,
-unique = true,
 length = 50,
 name = "username"
 )
-private String username;
+private String username; // display name — NOT unique, many users may share one
     @Column(
             nullable = false,
             unique = true,
@@ -55,14 +54,14 @@ private LocalDateTime createdAt;
     @OneToMany(
             mappedBy = "user",
             cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY // prevents unnecessary heavy database query
+            fetch = FetchType.LAZY // prevents an unnecessary heavy database query
     )
     private List<Task> task = new ArrayList<>();
 
     //user can one or more  categories
     @OneToMany(mappedBy = "user",
     cascade = CascadeType.ALL,
-    fetch = FetchType.LAZY // prevents unnecessary heavy database query
+    fetch = FetchType.LAZY // prevents an unnecessary heavy database query
             // it will only load the data explicit
     )
     private List<Category> categories = new ArrayList<>();
