@@ -1,4 +1,4 @@
-package com.example.taskflow.response;
+package com.example.taskflow.security.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
