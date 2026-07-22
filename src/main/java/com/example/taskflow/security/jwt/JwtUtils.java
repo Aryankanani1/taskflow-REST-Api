@@ -28,6 +28,7 @@ public class JwtUtils {
     // generate token
     public String generateToken(Authentication authentication){
         UserDetails userPrinciple = (UserDetails)  authentication.getPrincipal();
+        assert userPrinciple != null;
         return Jwts.builder().
                 subject(userPrinciple.getUsername())
                 .issuedAt(new Date())

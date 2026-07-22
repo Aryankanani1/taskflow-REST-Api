@@ -1,12 +1,10 @@
 package com.example.taskflow.controller.Auth;
 
-import com.example.taskflow.entity.User;
-import com.example.taskflow.exception.UserNotFoundException;
-import com.example.taskflow.repository.UserRepository;
-import com.example.taskflow.request.LoginRequest;
+import com.example.taskflow.security.request.LoginRequest;
 import com.example.taskflow.response.ApiResponse;
 import com.example.taskflow.security.jwt.JwtUtils;
 import com.example.taskflow.security.response.JwtResponse;
+import com.example.taskflow.security.user.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +23,6 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
-    private final UserRepository userRepository;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest request) {
@@ -35,10 +32,10 @@ public class AuthController {
 
         String token = jwtUtils.generateToken(authentication);
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("no user found"));
+        // Principal is our UserPrincipal (see UserDetailsService), so the id is right here.
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
 
-        JwtResponse jwtResponse = new JwtResponse(user.getId(), token);
+        JwtResponse jwtResponse = new JwtResponse(principal.getId(), token);
         return ResponseEntity.ok(ApiResponse.ok("login successful", jwtResponse));
     }
 }

@@ -1,4 +1,4 @@
-package com.example.taskflow.request;
+package com.example.taskflow.security.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
