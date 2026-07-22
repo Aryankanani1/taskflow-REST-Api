@@ -25,11 +25,13 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtEntryPoint jwtEntryPoint;
 
+    // secure password storage and validation
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
+    // login filterChain
     @Bean
     public SecurityFilterChain filterChain(
             HttpSecurity http) throws Exception {
@@ -45,6 +47,8 @@ http.csrf(AbstractHttpConfigurer::disable)
         return http.build();
     }
 
+
+    // the component that actually validate the delegates to provider
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(){
         var authProvider = new DaoAuthenticationProvider(userDetailsService);
@@ -55,12 +59,12 @@ http.csrf(AbstractHttpConfigurer::disable)
     public AuthTokenFilter authTokenFilter(){
         return new AuthTokenFilter();
     }
+
+    // main interface for the authentication
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws
             Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
-
-
 }

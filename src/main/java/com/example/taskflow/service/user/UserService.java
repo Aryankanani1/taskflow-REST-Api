@@ -1,4 +1,4 @@
-package com.example.taskflow.service;
+package com.example.taskflow.service.user;
 
 import com.example.taskflow.dto.UserDto;
 import com.example.taskflow.entity.User;
@@ -7,6 +7,7 @@ import com.example.taskflow.exception.UserNotFoundException;
 import com.example.taskflow.repository.UserRepository;
 import com.example.taskflow.request.RegisterRequest;
 import com.example.taskflow.request.UpdateUserRequest;
+import com.example.taskflow.service.user.UserServiceInterface;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +17,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserServiceInterface{
+public class UserService implements UserServiceInterface {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -41,8 +42,25 @@ public class UserService implements UserServiceInterface{
     }
 
     @Override
-    public User updateUser(UpdateUserRequest user) {
-        return null;
+    public User updateUser(UpdateUserRequest request, Long userId) {
+        return userRepository.findById(userId)
+                .map(existingUser -> {
+                    // Partial update: only touch fields the client actually sent.
+                    if (request.getName() != null) {
+                        existingUser.setUsername(request.getName());
+                    }
+                    if (request.getEmail() != null && !request.getEmail().equals(existingUser.getEmail())) {
+                        if (userRepository.existsByEmail(request.getEmail())) {
+                            throw new UserAlreadyExistsException("email already in use: " + request.getEmail());
+                        }
+                        existingUser.setEmail(request.getEmail());
+                    }
+                    if (request.getPassword() != null) {
+                        existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+                    }
+                    return userRepository.save(existingUser);
+                }).orElseThrow(() ->
+                        new UserNotFoundException("with provided userId user doesn't exists"));
     }
 
     @Override
