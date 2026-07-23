@@ -41,3 +41,5 @@ logs/
 .env.local
 .env.*.local
 application-local.properties
+# Real config with secrets stays local; copy application.properties.example to create it
+src/main/resources/application.properties
