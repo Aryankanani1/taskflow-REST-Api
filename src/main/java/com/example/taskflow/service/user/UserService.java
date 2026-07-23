@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -40,22 +42,23 @@ public class UserService implements UserServiceInterface {
     public void deleteUser() {
 
     }
-
     @Override
+    @Transactional
     public User updateUser(UpdateUserRequest request, Long userId) {
         return userRepository.findById(userId)
                 .map(existingUser -> {
-                    // Partial update: only touch fields the client actually sent.
-                    if (request.getName() != null) {
+                    // Partial update: only touch fields the client actually sent a value for.
+                    // hasText (not just != null) so an empty/blank string can't wipe a field.
+                    if (StringUtils.hasText(request.getName())) {
                         existingUser.setUsername(request.getName());
                     }
-                    if (request.getEmail() != null && !request.getEmail().equals(existingUser.getEmail())) {
+                    if (StringUtils.hasText(request.getEmail()) && !request.getEmail().equals(existingUser.getEmail())) {
                         if (userRepository.existsByEmail(request.getEmail())) {
                             throw new UserAlreadyExistsException("email already in use: " + request.getEmail());
                         }
                         existingUser.setEmail(request.getEmail());
                     }
-                    if (request.getPassword() != null) {
+                    if (StringUtils.hasText(request.getPassword())) {
                         existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
                     }
                     return userRepository.save(existingUser);
