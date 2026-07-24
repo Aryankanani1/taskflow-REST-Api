@@ -70,8 +70,12 @@ public class UserController {
 
     @DeleteMapping("/{userId}/delete")
     public ResponseEntity<ApiResponse> deleteUser(
+            @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable Long userId
     ){
+        if (!userId.equals(principal.getId())) {
+            throw new AccessDeniedException("you can only delete your own account");
+        }
         userServiceInterface.deleteUser(userId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("User deleted successfully", null));
