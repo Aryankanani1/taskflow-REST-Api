@@ -1,4 +1,4 @@
-package com.example.taskflow.request;
+package com.example.taskflow.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;

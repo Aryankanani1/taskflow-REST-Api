@@ -1,14 +1,17 @@
 package com.example.taskflow.exception;
 
-import com.example.taskflow.response.ApiResponse;
+import com.example.taskflow.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,8 +28,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiResponse<Object>> handleNotFound(UserNotFoundException ex) {
+    @ExceptionHandler({
+            UserNotFoundException.class,
+            TaskNotFoundException.class,
+            CategoryNotFoundException.class
+    })
+    public ResponseEntity<ApiResponse<Object>> handleNotFound(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(ex.getMessage()));
     }
@@ -43,6 +50,26 @@ public class GlobalExceptionHandler {
         // generic message so responses don't reveal whether an account exists.
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error("invalid email or password"));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        // A path/query param couldn't be converted to the target type, e.g. an
+        // invalid enum value like status=finished. List the allowed values when it's an enum.
+        String message = "Invalid value '" + ex.getValue() + "' for '" + ex.getName() + "'";
+        Class<?> type = ex.getRequiredType();
+        if (type != null && type.isEnum()) {
+            message += ". Allowed values: " + Arrays.toString(type.getEnumConstants());
+        }
+        return ResponseEntity.badRequest().body(ApiResponse.error(message));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Object>> handleUnreadableBody(HttpMessageNotReadableException ex) {
+        // Body is missing or can't be parsed into the target type (bad JSON, wrong
+        // field type, or an invalid enum value like priority "High" vs "HIGH").
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error("Malformed or invalid request body"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

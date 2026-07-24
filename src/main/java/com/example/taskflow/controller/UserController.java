@@ -3,12 +3,13 @@ package com.example.taskflow.controller;
 
 import com.example.taskflow.dto.UserDto;
 import com.example.taskflow.entity.User;
-import com.example.taskflow.request.RegisterRequest;
-import com.example.taskflow.request.UpdateUserRequest;
-import com.example.taskflow.response.ApiResponse;
+import com.example.taskflow.dto.request.RegisterRequest;
+import com.example.taskflow.dto.request.UpdateUserRequest;
+import com.example.taskflow.dto.response.ApiResponse;
 import com.example.taskflow.service.user.UserServiceInterface;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -48,6 +49,7 @@ public class UserController {
                 .body(ApiResponse.ok("User registered successfully", userDto));
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{userId}/update")
     public ResponseEntity<ApiResponse<UserDto>> updateUser(
             @AuthenticationPrincipal UserPrincipal principal,
@@ -68,6 +70,7 @@ public class UserController {
                 .body(ApiResponse.ok("User updated Successfully", userDto));
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{userId}/delete")
     public ResponseEntity<ApiResponse> deleteUser(
             @AuthenticationPrincipal UserPrincipal principal,

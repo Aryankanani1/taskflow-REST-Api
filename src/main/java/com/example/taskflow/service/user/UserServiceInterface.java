@@ -2,8 +2,8 @@ package com.example.taskflow.service.user;
 
 import com.example.taskflow.dto.UserDto;
 import com.example.taskflow.entity.User;
-import com.example.taskflow.request.RegisterRequest;
-import com.example.taskflow.request.UpdateUserRequest;
+import com.example.taskflow.dto.request.RegisterRequest;
+import com.example.taskflow.dto.request.UpdateUserRequest;
 
 public interface UserServiceInterface {
 

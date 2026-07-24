@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Category {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -53,4 +54,5 @@ public class Category {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
 }

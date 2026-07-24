@@ -49,7 +49,6 @@ private String password;
 private LocalDateTime createdAt;
 
     // relation
-
     // user can have one or more task
     @OneToMany(
             mappedBy = "user",
