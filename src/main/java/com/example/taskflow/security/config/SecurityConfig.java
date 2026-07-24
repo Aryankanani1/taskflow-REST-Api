@@ -17,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -24,6 +26,17 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final JwtEntryPoint jwtEntryPoint;
+
+    // Open endpoints (login/register + API docs) — permitted before the secured
+    // matchers are evaluated, so /users/register stays public even though
+    // /users/** is secured.
+    private static final List<String> PUBLIC_URLS =
+            List.of("/api/v1/auth/**", "/api/v1/users/register",
+                    "/swagger-ui/**", "/swagger-ui.html", "/v1/api-docs/**");
+
+    // Endpoints that require a valid JWT.
+    private static final List<String> SECURED_URLS =
+            List.of("/api/v1/tasks/**", "/api/v1/users/**");
 
     // secure password storage and validation
     @Bean
@@ -39,8 +52,8 @@ http.csrf(AbstractHttpConfigurer::disable)
         .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtEntryPoint))
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**", "/api/v1/users/register").permitAll()
-                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v1/api-docs/**").permitAll()
+                .requestMatchers(PUBLIC_URLS.toArray(String[]::new)).permitAll()
+                .requestMatchers(SECURED_URLS.toArray(String[]::new)).authenticated()
                 .anyRequest().authenticated());
         http.authenticationProvider(daoAuthenticationProvider());
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
