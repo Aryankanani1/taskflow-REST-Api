@@ -1,0 +1,197 @@
+{
+  "info": {
+    "name": "TaskFlow API",
+    "description": "TaskFlow REST API. Run 'Auth > Login' first — it auto-saves the JWT into the {{token}} collection variable, and every other request sends it via Bearer auth automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:9090/api/v1" },
+    { "key": "token", "value": "" },
+    { "key": "taskId", "value": "1" },
+    { "key": "userId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"aryan\",\n  \"email\": \"aryan@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/register",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "users", "register" ]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json && json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    if (json.data.id) { pm.collectionVariables.set('userId', json.data.id); }",
+                  "    console.log('Token saved to {{token}}');",
+                  "} else {",
+                  "    console.log('No token in response');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aryan@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "auth", "login" ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"reading\",\n  \"description\": \"read book : programming by perls\",\n  \"priority\": \"MEDIUM\",\n  \"dueDate\": \"2026-07-25\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/create",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "tasks", "create" ]
+            }
+          }
+        },
+        {
+          "name": "Get All Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/all",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "tasks", "all" ]
+            }
+          }
+        },
+        {
+          "name": "Get Task By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/task",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "tasks", "{{taskId}}", "task" ]
+            }
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"reading (updated)\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/update",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "tasks", "{{taskId}}", "update" ]
+            }
+          }
+        },
+        {
+          "name": "Patch Task Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/status?status=COMPLETED",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "tasks", "{{taskId}}", "status" ],
+              "query": [ { "key": "status", "value": "COMPLETED" } ]
+            }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/delete",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "tasks", "{{taskId}}", "delete" ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"aryan updated\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/update",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "users", "{{userId}}", "update" ]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/delete",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "users", "{{userId}}", "delete" ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
