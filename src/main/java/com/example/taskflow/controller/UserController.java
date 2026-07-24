@@ -67,4 +67,14 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("User updated Successfully", userDto));
     }
+
+    @DeleteMapping("/{userId}/delete")
+    public ResponseEntity<ApiResponse> deleteUser(
+            @PathVariable Long userId
+    ){
+        userServiceInterface.deleteUser(userId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("User deleted successfully", null));
+    }
+
 }

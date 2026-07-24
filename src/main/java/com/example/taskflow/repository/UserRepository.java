@@ -13,7 +13,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
     // email is the unique identity — safe to return a single Optional / check existence
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
-
     // username is NOT unique -> may match many rows, so it returns a List.
     // (An Optional<User> query here would throw when two users share a name.)
     List<User> findByUsername(String username);

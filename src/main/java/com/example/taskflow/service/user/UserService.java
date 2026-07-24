@@ -7,7 +7,6 @@ import com.example.taskflow.exception.UserNotFoundException;
 import com.example.taskflow.repository.UserRepository;
 import com.example.taskflow.request.RegisterRequest;
 import com.example.taskflow.request.UpdateUserRequest;
-import com.example.taskflow.service.user.UserServiceInterface;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,8 +38,10 @@ public class UserService implements UserServiceInterface {
     }
 
     @Override
-    public void deleteUser() {
-
+    public void deleteUser(Long id) {
+        userRepository.findById(id).ifPresentOrElse(userRepository::delete,() ->{
+           throw new UserNotFoundException("user not found");
+       });
     }
     @Override
     @Transactional
