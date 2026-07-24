@@ -1,4 +1,4 @@
-package com.example.taskflow.response;
+package com.example.taskflow.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;

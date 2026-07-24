@@ -1,7 +1,7 @@
 package com.example.taskflow.controller.Auth;
 
 import com.example.taskflow.security.request.LoginRequest;
-import com.example.taskflow.response.ApiResponse;
+import com.example.taskflow.dto.response.ApiResponse;
 import com.example.taskflow.security.jwt.JwtUtils;
 import com.example.taskflow.security.response.JwtResponse;
 import com.example.taskflow.security.user.UserPrincipal;
