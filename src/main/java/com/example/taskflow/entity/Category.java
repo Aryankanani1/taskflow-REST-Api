@@ -6,7 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "categories")
+@Table(
+        name = "categories",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uq_categories_name_user",
+                columnNames = {"name", "user_id"}
+        )
+)
 @Getter
 @Setter
 @NoArgsConstructor

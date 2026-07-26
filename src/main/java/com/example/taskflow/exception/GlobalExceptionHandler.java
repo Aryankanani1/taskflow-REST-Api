@@ -1,6 +1,7 @@
 package com.example.taskflow.exception;
 
 import com.example.taskflow.dto.response.ApiResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -22,8 +23,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ApiResponse<Object>> handleUserExists(UserAlreadyExistsException ex) {
+    @ExceptionHandler({
+            UserAlreadyExistsException.class,
+            CategoryAlreadyExistsException.class
+    })
+    public ResponseEntity<ApiResponse<Object>> handleAlreadyExists(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiResponse.error(ex.getMessage()));
     }
@@ -36,6 +40,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleNotFound(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        // A DB constraint rejected the write (e.g. the unique (name, user_id) on
+        // categories under a concurrent create). Report it as a conflict, not a 500.
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("resource already exists or violates a constraint"));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

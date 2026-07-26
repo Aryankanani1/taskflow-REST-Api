@@ -36,7 +36,7 @@ public class SecurityConfig {
 
     // Endpoints that require a valid JWT.
     private static final List<String> SECURED_URLS =
-            List.of("/api/v1/tasks/**", "/api/v1/users/**");
+            List.of("/api/v1/tasks/**", "/api/v1/categories/**", "/api/v1/users/**");
 
     // secure password storage and validation
     @Bean
