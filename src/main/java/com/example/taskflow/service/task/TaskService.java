@@ -3,9 +3,11 @@ package com.example.taskflow.service.task;
 import com.example.taskflow.dto.TaskDto;
 import com.example.taskflow.dto.request.CreateTaskRequest;
 import com.example.taskflow.dto.request.UpdateTaskRequest;
+import com.example.taskflow.dto.response.PagedResponse;
 import com.example.taskflow.entity.Category;
 import com.example.taskflow.entity.Task;
 import com.example.taskflow.entity.User;
+import com.example.taskflow.enums.Priority;
 import com.example.taskflow.enums.TaskStatus;
 import com.example.taskflow.exception.CategoryNotFoundException;
 import com.example.taskflow.exception.TaskNotFoundException;
@@ -14,11 +16,15 @@ import com.example.taskflow.repository.TaskRepository;
 import com.example.taskflow.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -29,13 +35,58 @@ public class TaskService implements TaskServiceInterface {
     private final CategoryRepository categoryRepository;
     private final ModelMapper modelMapper;
 
+    // Fields a client is allowed to sort by. Anything else falls back to a safe
+    // default, so a bad sortBy can't leak internals or trigger a 500.
+    private static final Set<String> SORTABLE =
+            Set.of("createdAt", "updatedAt", "dueDate", "priority", "status", "title", "id");
+    private static final String DEFAULT_SORT = "createdAt";
+
     @Override
     @Transactional(readOnly = true)
-    public List<TaskDto> getAll(Long userId) {
+    public PagedResponse<TaskDto> getAll(Long userId, TaskStatus status, Priority priority, Long categoryId,
+                                         int page, int size, String sortBy, String sortDir) {
         User owner = userRepository.getReferenceById(userId);
-        return taskRepository.findByUser(owner).stream()
-                .map(this::toDto)
-                .toList();
+        Pageable pageable = buildPageable(page, size, sortBy, sortDir);
+
+        // Option A: one derived query per filter combination. Check the most-specific
+        // combination (all filters) first and fall through to less-specific; findByUser
+        // is the no-filter catch-all. Order matters — a broader branch placed first would
+        // swallow requests that also carry the narrower filters and silently drop them.
+        // Exactly one query runs per request. Every filter is user-scoped, so an unowned
+        // categoryId simply yields an empty page rather than leaking another user's tasks.
+        // NOTE: 3 optional filters is already 2^3 = 8 branches; a 4th doubles it again —
+        // that's the cue to switch to JPA Specifications (Option B).
+        Page<Task> result;
+        if (status != null && priority != null && categoryId != null) {
+            result = taskRepository.findByUserAndStatusAndPriorityAndCategory_Id(owner, status, priority, categoryId, pageable);
+        } else if (status != null && priority != null) {
+            result = taskRepository.findByUserAndStatusAndPriority(owner, status, priority, pageable);
+        } else if (status != null && categoryId != null) {
+            result = taskRepository.findByUserAndStatusAndCategory_Id(owner, status, categoryId, pageable);
+        } else if (priority != null && categoryId != null) {
+            result = taskRepository.findByUserAndPriorityAndCategory_Id(owner, priority, categoryId, pageable);
+        } else if (status != null) {
+            result = taskRepository.findByUserAndStatus(owner, status, pageable);
+        } else if (priority != null) {
+            result = taskRepository.findByUserAndPriority(owner, priority, pageable);
+        } else if (categoryId != null) {
+            result = taskRepository.findByUserAndCategory_Id(owner, categoryId, pageable);
+        } else {
+            result = taskRepository.findByUser(owner, pageable);
+        }
+
+        return PagedResponse.from(result.map(this::toDto));
+    }
+
+    // Build a 0-based, clamped, safely-sorted Pageable. page=0 is the first page
+    // (matches JPA and the response); size is clamped to 1..100 and sortBy to an
+    // allowlist so bad params can't throw, scan the whole table, or leak internals.
+    private Pageable buildPageable(int page, int size, String sortBy, String sortDir) {
+        int pageIndex = Math.max(page, 0);
+        int pageSize = Math.min(Math.max(size, 1), 100);
+        String sortField = SORTABLE.contains(sortBy) ? sortBy : DEFAULT_SORT;
+        Sort.Direction direction = Sort.Direction.fromOptionalString(sortDir).orElse(Sort.Direction.ASC);
+        return PageRequest.of(pageIndex, pageSize, Sort.by(direction, sortField));
     }
 
     @Override
