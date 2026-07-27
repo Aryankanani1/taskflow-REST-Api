@@ -4,6 +4,8 @@ import com.example.taskflow.dto.TaskDto;
 import com.example.taskflow.dto.request.CreateTaskRequest;
 import com.example.taskflow.dto.request.UpdateTaskRequest;
 import com.example.taskflow.dto.response.ApiResponse;
+import com.example.taskflow.dto.response.PagedResponse;
+import com.example.taskflow.enums.Priority;
 import com.example.taskflow.enums.TaskStatus;
 import com.example.taskflow.security.user.UserPrincipal;
 import com.example.taskflow.service.task.TaskServiceInterface;
@@ -17,8 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("${api.prefix}/tasks")
 @RequiredArgsConstructor
@@ -29,21 +29,34 @@ public class TaskController {
 
     @Operation(
             summary = "List my tasks",
-            description = "Returns all tasks owned by the authenticated user"
+            description = "Returns a page of tasks owned by the authenticated user. "
+                    + "Optionally filter by any combination of status, priority, and categoryId "
+                    + "(omit a filter to ignore it). page is 0-based; paging/sort params are "
+                    + "optional (defaults: page=0, size=10, sortBy=createdAt, sortDir=desc)."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
                     description = "tasks returned"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400",
+                    description = "invalid filter value (e.g. unknown status/priority)"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401",
                     description = "not authenticated"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500",
                     description = "Server error")
     })
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<TaskDto>>> getAll(
-            @AuthenticationPrincipal UserPrincipal principal
+    public ResponseEntity<ApiResponse<PagedResponse<TaskDto>>> getAll(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) Priority priority,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
     ) {
-        List<TaskDto> tasks = taskServiceInterface.getAll(principal.getId());
+        PagedResponse<TaskDto> tasks = taskServiceInterface.getAll(
+                principal.getId(), status, priority, categoryId, page, size, sortBy, sortDir);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("Tasks fetched successfully", tasks));
     }
