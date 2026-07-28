@@ -77,4 +77,5 @@ public class UserService implements UserServiceInterface {
     public UserDto convertUserToUserDto(User user) {
         return modelMapper.map(user,UserDto.class);
     }
+
 }
