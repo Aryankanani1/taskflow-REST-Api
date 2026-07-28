@@ -66,8 +66,7 @@ public class TaskController {
             description = "Returns a single task, only if it belongs to the authenticated user"
     )
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
-                    description = "task returned"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "task returned"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401",
                     description = "not authenticated"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404",

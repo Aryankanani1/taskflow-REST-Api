@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -91,6 +92,14 @@ public class GlobalExceptionHandler {
                 .forEach(err -> fieldErrors.put(err.getField(), err.getDefaultMessage()));
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error("Validation failed", fieldErrors));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleNoResource(NoResourceFoundException ex) {
+        // No controller mapping matched the requested URL. Report a clear 404 instead of
+        // letting it fall through to the generic 500 "Something went wrong".
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("No resource found for path: " + ex.getResourcePath()));
     }
 
     @ExceptionHandler(Exception.class)
