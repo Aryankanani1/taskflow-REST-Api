@@ -30,8 +30,9 @@ public class TaskController {
     @Operation(
             summary = "List my tasks",
             description = "Returns a page of tasks owned by the authenticated user. "
-                    + "Optionally filter by any combination of status, priority, and categoryId "
-                    + "(omit a filter to ignore it). page is 0-based; paging/sort params are "
+                    + "Optionally filter by any combination of status, priority, categoryId, and "
+                    + "search (a case-insensitive substring match on the title); filters are ANDed "
+                    + "together and omitting one ignores it. page is 0-based; paging/sort params are "
                     + "optional (defaults: page=0, size=10, sortBy=createdAt, sortDir=desc)."
     )
     @ApiResponses(value = {
@@ -50,13 +51,14 @@ public class TaskController {
             @RequestParam(required = false) TaskStatus status,
             @RequestParam(required = false) Priority priority,
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir
     ) {
         PagedResponse<TaskDto> tasks = taskServiceInterface.getAll(
-                principal.getId(), status, priority, categoryId, page, size, sortBy, sortDir);
+                principal.getId(), status, priority, categoryId, search, page, size, sortBy, sortDir);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.ok("Tasks fetched successfully", tasks));
     }
