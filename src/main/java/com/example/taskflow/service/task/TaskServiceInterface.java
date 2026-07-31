@@ -12,9 +12,10 @@ import java.util.List;
 public interface TaskServiceInterface {
 
     // A page of the user's tasks, optionally filtered by any combination of status,
-    // priority, and category (null = filter not applied). page is 0-based.
+    // priority, category, and a case-insensitive title search (null/blank = not applied).
+    // page is 0-based.
     PagedResponse<TaskDto> getAll(Long userId, TaskStatus status, Priority priority, Long categoryId,
-                                  int page, int size, String sortBy, String sortDir);
+                                  String search, int page, int size, String sortBy, String sortDir);
 
     // The task only if it belongs to the user; otherwise throw (mapped to 404).
     TaskDto getById(Long taskId, Long userId);
